@@ -20,6 +20,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 public class HammingFrame extends JFrame {	 
+	//Holds the stations from the file and any words added
+	private ArrayList<String> words = new ArrayList<String>();
 	//Displays words with the same Ascii Average as the selected station (sorted)
 	private JTextArea stationField = new JTextArea(30, 30);
 	//Sets the station whose Ascii Average being searched for
@@ -59,21 +61,22 @@ public class HammingFrame extends JFrame {
 	JLabel wordInfo = new JLabel("Enter Word");
 	JTextField word = new JTextField(15);
 	JButton calculate = new JButton("Calc Average");
-	JTextField average = new JTextField(3);
+	JTextArea average = new JTextArea(1, 3);
 	private GridBagConstraints gbc = null;
 	
-	public String[] read(String fileName) throws IOException {
-		String[] stations = new String[120];
+	public void read(String fileName) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
-		int count = 0;
 		while(br.ready()) {
-			stations[count] = br.readLine();
-			++count;
+			String currLine = br.readLine();
+			words.add(currLine);
 		}
 		br.close();
-		return stations;
 	}
-	
+	/**
+	 * Performs basic calculations to find the Hamming Distance of a 4-Letter String and find the Ascii
+	 * Average of any length of string and displays it in a GUI format.
+	 * @throws IOException
+	 */
 	public HammingFrame() throws IOException {
 		this.setLayout(new GridLayout(1, 2));
 		mainPanel.setLayout(new GridBagLayout());
@@ -112,18 +115,14 @@ public class HammingFrame extends JFrame {
 		mainPanel.add(showStation, gbc);
 		showStation.addActionListener(e -> {
 			try {
-				String[] words = HammingDist.findWordsOfHammingFile((String)stationNames.getSelectedItem(),
-						Integer.parseInt(hammingDist.getText()), "Mesonet.txt");
+				String[] wordsOfHamming = HammingDist.findWordsOfHamming((String)stationNames.getSelectedItem(),
+						Integer.parseInt(hammingDist.getText()), words);
 				String text = "";
-				for(String s : words) {
+				for(String s : wordsOfHamming) {
 					text = text + s + "\n";
 				}
 				stationField.setText(text);
 			} catch (NumberFormatException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		});
@@ -150,7 +149,9 @@ public class HammingFrame extends JFrame {
 		gbc.gridx = 1;
 		gbc.gridy = 4;
 		gbc.insets = new Insets(10, 10, 10, 10);
-		String[] stations = this.read("Mesonet.txt");
+		this.read("Mesonet.txt");
+		String[] vals = new String[0];
+		String[] stations = words.toArray(vals);
 		stationNames = new JComboBox(stations);
 		mainPanel.add(stationNames, gbc);
 		
@@ -161,16 +162,10 @@ public class HammingFrame extends JFrame {
 		mainPanel.add(buttonHD, gbc);
 		buttonHD.addActionListener((e) -> {
 			String station = (String)stationNames.getSelectedItem();
-			try {
-				HammingDist hamm = new HammingDist(station);
-				hamm1.setText(Integer.toString(HammingDist.findHammingFile(station, 1, "Mesonet.txt")));
-				hamm2.setText(Integer.toString(HammingDist.findHammingFile(station, 2, "Mesonet.txt")));
-				hamm3.setText(Integer.toString(HammingDist.findHammingFile(station, 3, "Mesonet.txt")));
-				hamm4.setText(Integer.toString(HammingDist.findHammingFile(station, 4, "Mesonet.txt")));
-			} 
-			catch (IOException e1) {
-				e1.printStackTrace();
-			}
+				hamm1.setText(Integer.toString(HammingDist.findHammingList(station, 1, words)));
+				hamm2.setText(Integer.toString(HammingDist.findHammingList(station, 2, words)));
+				hamm3.setText(Integer.toString(HammingDist.findHammingList(station, 3, words)));
+				hamm4.setText(Integer.toString(HammingDist.findHammingList(station, 4, words)));
 		});
 		
 		gbc = new GridBagConstraints();
@@ -240,7 +235,11 @@ public class HammingFrame extends JFrame {
 		mainPanel.add(stationAdd, gbc);
 		stationAdd.addActionListener((e) -> {
 			String name = stationNameAdd.getText();
-			stationNames.addItem(name);
+			if(!words.contains(name) && name.length() == 4) {
+				words.add(name);
+				stationNames.addItem(name);
+			}
+			stationNameAdd.setText("");
 		});
 		
 		gbc = new GridBagConstraints();
@@ -276,9 +275,13 @@ public class HammingFrame extends JFrame {
 		gbc.insets = new Insets(10, 10, 10, 10);
 		freePanel.add(calculate, gbc);
 		calculate.addActionListener((e) -> {
-			MesoAscii currWord = new MesoAscii(word.getText());
-			int currAverage = currWord.calAverage();
-			average.setText(Integer.toString(currAverage));
+			String val = word.getText();
+			if(val != null) {
+				MesoAscii currWord = new MesoAscii(val);
+				int currAverage = currWord.calAverage();
+				average.setText(Integer.toString(currAverage));
+			}
+			
 		});
 		
 		gbc = new GridBagConstraints();
