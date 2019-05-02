@@ -23,39 +23,46 @@ import java.util.ArrayList;
 		  * 
 		  * @param str1
 		  * @param str2
-		  * @throws IOException
 		  */
-		 public HammingDist(String str1) throws IOException {
+		 public HammingDist(String str1) {
 			 this.station1 = str1;
-			 
-			 station1Nodes = new int[NUMBER_OF_CHAR];
-			 this.station1Nodes[0] = HammingDist.findHammingFile(str1, 1, "Mesonet.txt");
-			 this.station1Nodes[1] = HammingDist.findHammingFile(str1, 2, "Mesonet.txt");
-			 this.station1Nodes[2] = HammingDist.findHammingFile(str1, 3, "Mesonet.txt");
-			 this.station1Nodes[3] = HammingDist.findHammingFile(str1, 4, "Mesonet.txt");
+			
 		 }
-		 /**
-		  * Takes in a String and a file of strings and computes how many strings have a 
-		  * specified hamming distance from reStr
-		  * @param refStr
-		  * @param userHamming
-		  * @param fileName
-		  * @return an int representing the number of Strings with a hamming distance of userHamming
-		  * @throws IOException
-		  */
-		 public static int findHammingFile(String refStr,int userHamming, String fileName) throws IOException {
+		
+		 public static String[] findWordsOfHamming(String refStr,int userHamming, ArrayList<String> vals) {
 			 int counter = 0;
-			 //construct BufferedReader
-			 BufferedReader br = new BufferedReader(new FileReader(fileName));
-			 String currLine = br.readLine();
-			 while(currLine != null) {
+			 ArrayList<String> wordsOfHamming = new ArrayList<String>();
+			for(String s : vals) {
 				 int currHammDist = 0;
 				 for(int index = 0; index < NUMBER_OF_CHAR; ++index) {
-					 if(refStr.equalsIgnoreCase(currLine)) {
+					 if(refStr.equalsIgnoreCase(s)) {
 						 break;
 					 }
 					 char ref1 = refStr.charAt(index);
-					 char ref2 = currLine.charAt(index);
+					 char ref2 = s.charAt(index);
+					 int comparator = Character.compare(ref1, ref2);
+					 if(comparator < 0 || comparator > 0) {
+						 ++currHammDist;
+					 }
+				 }
+				 if(currHammDist == userHamming) {
+					 wordsOfHamming.add(s);
+				 }
+			 }
+			String[] placeHolder = new String[0];
+			String[] words = wordsOfHamming.toArray(placeHolder);
+			return words;
+		 }
+		public static int findHammingList(String station, int userHamming, ArrayList<String> words) {
+			 int counter = 0;
+				 for (String s : words) {
+					 int currHammDist = 0;
+				 for(int index = 0; index < NUMBER_OF_CHAR; ++index) {
+					 if(station.equalsIgnoreCase(s)) {
+						 break;
+					 }
+					 char ref1 = station.charAt(index);
+					 char ref2 = s.charAt(index);
 					 int comparator = Character.compare(ref1, ref2);
 					 if(comparator < 0 || comparator > 0) {
 						 ++currHammDist;
@@ -64,42 +71,10 @@ import java.util.ArrayList;
 				 if(currHammDist == userHamming) {
 					 ++counter;
 				 }
-				 currLine = br.readLine();
 			 }
-			 //close reader
-			 br.close();
 			return counter;
 		 }
-		 
-		 public static String[] findWordsOfHammingFile(String refStr,int userHamming, String fileName) throws IOException {
-			 int counter = 0;
-			 //construct BufferedReader
-			 ArrayList<String> wordsOfHamming = new ArrayList<String>();
-			 BufferedReader br = new BufferedReader(new FileReader(fileName));
-			 String currLine = br.readLine();
-			 while(currLine != null) {
-				 int currHammDist = 0;
-				 for(int index = 0; index < NUMBER_OF_CHAR; ++index) {
-					 if(refStr.equalsIgnoreCase(currLine)) {
-						 break;
-					 }
-					 char ref1 = refStr.charAt(index);
-					 char ref2 = currLine.charAt(index);
-					 int comparator = Character.compare(ref1, ref2);
-					 if(comparator < 0 || comparator > 0) {
-						 ++currHammDist;
-					 }
-				 }
-				 if(currHammDist == userHamming) {
-					 wordsOfHamming.add(currLine);
-				 }
-				 currLine = br.readLine();
-			 }
-			 //close reader
-			 br.close();
-			 String[] vals = new String[0];
-			 String[] words = wordsOfHamming.toArray(vals);
-			return words;
-		 }
+	
 	}
+	
 
